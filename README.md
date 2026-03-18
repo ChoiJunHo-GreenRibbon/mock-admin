@@ -50,7 +50,8 @@ Repository `Secrets`
 - S3: `s3://mock-admin-front-dev`
 - CloudFront Distribution ID: `E3V31IFVJZ8NY1`
 - Region: `ap-northeast-2`
-- VITE_API_URL: `https://agent-api.green-ribbon.co.kr`
+- VITE_API_URL: `https://agent-api-dev.green-ribbon.co.kr`
+- VITE_ALLOW_DEV_ADMIN: `true`
 - Role ARN: `arn:aws:iam::938617530895:role/github-action-role`
 
 ### 권장 AWS 설정

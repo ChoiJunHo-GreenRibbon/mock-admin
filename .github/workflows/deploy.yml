@@ -21,7 +21,8 @@ jobs:
       AWS_REGION: ap-northeast-2
       S3_BUCKET: mock-admin-front-dev
       CLOUDFRONT_DISTRIBUTION_ID: E3V31IFVJZ8NY1
-      VITE_API_URL: https://agent-api.green-ribbon.co.kr
+      VITE_API_URL: https://agent-api-dev.green-ribbon.co.kr
+      VITE_ALLOW_DEV_ADMIN: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@v3
