@@ -60,9 +60,13 @@ jobs:
 
       - name: Upload static assets
         run: |
-          aws s3 sync dist/assets "s3://${S3_BUCKET}/assets" \
-            --delete \
-            --cache-control "public,max-age=31536000,immutable"
+          if [ -d dist/assets ]; then
+            aws s3 sync dist/assets "s3://${S3_BUCKET}/assets" \
+              --delete \
+              --cache-control "public,max-age=31536000,immutable"
+          else
+            echo "dist/assets not found, skipping static asset sync"
+          fi
 
       - name: Upload app files
         run: |
