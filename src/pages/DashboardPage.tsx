@@ -1,84 +1,130 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clearSession, getSession } from '../services/auth';
-import { ToggleSection } from '../types';
+import {
+  applyLostBenefitPreset,
+  getLostBenefitPresets,
+  getLostBenefitSelection,
+} from '../services/lostBenefitPreset';
+import { LostBenefitPreset } from '../types';
 
-const INITIAL_SECTIONS: ToggleSection[] = [
+const PRESET_GROUPS = [
   {
-    key: 'user-state',
-    title: '유저 상태 설정',
-    description: '보험청구 테스트 흐름에서 사용자 상태를 빠르게 전환합니다.',
-    fields: [
-      {
-        key: 'isIntegratedUser',
-        label: '라이프캐치 통합 유저 여부',
-        description: '통합 유저로 간주할지 여부를 설정합니다.',
-        value: true,
-      },
-    ],
+    key: 'default',
+    title: '기본 케이스',
+    description: '대표 흐름과 빈 결과, 청구불가 같은 기본 동작을 확인하는 케이스입니다.',
   },
   {
-    key: 'data-state',
-    title: '데이터 설정',
-    description: '유저의 테스트 데이터 존재 여부를 예시로 제공합니다.',
-    fields: [
-      {
-        key: 'hasQuickClaimData',
-        label: '바로청구보험 데이터 유무',
-        description: '바로청구 가능한 보험 데이터가 존재하는지 설정합니다.',
-        value: true,
-      },
-    ],
+    key: 'amount',
+    title: '금액 기준',
+    description: '병원 45,000원, 약국 60,000원 기준과 경계값을 검증하는 케이스입니다.',
   },
-];
+  {
+    key: 'filter',
+    title: '필터 제외',
+    description: '기지급, 시효, 진단코드, 병원 상태, 계약 조건으로 제외되는 케이스입니다.',
+  },
+] as const;
 
-const formatPhoneNumber = (value: string) => {
-  const onlyDigits = value.replace(/\D/g, '').slice(0, 11);
-
-  if (onlyDigits.length < 4) {
-    return onlyDigits;
+const getPresetGroupKey = (preset: LostBenefitPreset) => {
+  if (preset.presetKey.includes('THRESHOLD')) {
+    return 'amount';
   }
 
-  if (onlyDigits.length < 8) {
-    return `${onlyDigits.slice(0, 3)}-${onlyDigits.slice(3)}`;
+  if (
+    preset.presetKey.includes('EXCLUDED') ||
+    preset.presetKey.includes('BLACK_HOSPITAL') ||
+    preset.presetKey.includes('CLOSED_HOSPITAL')
+  ) {
+    return 'filter';
   }
 
-  return `${onlyDigits.slice(0, 3)}-${onlyDigits.slice(3, 7)}-${onlyDigits.slice(7)}`;
+  return 'default';
 };
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
-  const session = getSession();
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [sections, setSections] = useState(INITIAL_SECTIONS);
+  const [session] = useState(() => getSession());
+  const phoneNumber = session?.phoneNumber ?? '';
+  const [presets, setPresets] = useState<LostBenefitPreset[]>([]);
+  const [selectedPresetKey, setSelectedPresetKey] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [lastAppliedAt, setLastAppliedAt] = useState('');
+  const [toast, setToast] = useState<{ message: string; tone: 'success' | 'error' } | null>(null);
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
-  const isDirty = useMemo(() => phoneNumber.replace(/\D/g, '').length === 11, [phoneNumber]);
+  const groupedPresets = PRESET_GROUPS.map((group) => ({
+    ...group,
+    presets: presets.filter((preset) => getPresetGroupKey(preset) === group.key),
+  })).filter((group) => group.presets.length > 0);
 
-  const handleToggle = (sectionKey: string, fieldKey: string) => {
-    setSections((current) =>
-      current.map((section) =>
-        section.key !== sectionKey
-          ? section
-          : {
-              ...section,
-              fields: section.fields.map((field) =>
-                field.key !== fieldKey ? field : { ...field, value: !field.value },
-              ),
-            },
-      ),
-    );
-  };
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
 
-  const handleReset = () => {
-    setSections(INITIAL_SECTIONS);
-    setLastAppliedAt('유저 상태를 기본 예시값으로 초기화했습니다.');
-  };
+    const timeoutId = window.setTimeout(() => {
+      setToast(null);
+    }, 2800);
 
-  const handleApply = () => {
-    setLastAppliedAt(
-      `${phoneNumber} 번호 기준으로 예시 설정을 적용했습니다. 실제 API 연결 시 이 지점에 저장 요청을 연결하면 됩니다.`,
-    );
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [toast]);
+
+  useEffect(() => {
+    if (!session) {
+      navigate('/', { replace: true });
+      return;
+    }
+
+    void getLostBenefitPresets()
+      .then((response) => {
+        setPresets(response.presets);
+        setSelectedPresetKey(response.presets[0]?.presetKey ?? '');
+      })
+      .catch(() => {
+        setLastAppliedAt('preset 목록을 불러오지 못했습니다. mock API 상태를 확인해 주세요.');
+      });
+  }, [navigate, phoneNumber, session]);
+
+  useEffect(() => {
+    if (!phoneNumber || presets.length === 0) {
+      return;
+    }
+
+    void getLostBenefitSelection(phoneNumber)
+      .then((response) => {
+        const matchedPreset = presets.find((preset) => preset.presetKey === response.selectedPresetKey);
+        setSelectedPresetKey(matchedPreset?.presetKey ?? presets[0]?.presetKey ?? '');
+      })
+      .catch(() => {
+        setSelectedPresetKey((currentPresetKey) => currentPresetKey || presets[0]?.presetKey || '');
+        setLastAppliedAt('현재 적용된 놓친보험금 preset을 불러오지 못해 기본 케이스를 선택했습니다.');
+      });
+  }, [phoneNumber, presets]);
+
+  const handleApply = async () => {
+    if (!phoneNumber || !selectedPresetKey) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const response = await applyLostBenefitPreset(phoneNumber, selectedPresetKey);
+      const selectedPreset = presets.find((preset) => preset.presetKey === response.selectedPresetKey);
+      setSelectedPresetKey(response.selectedPresetKey);
+      const message = `${phoneNumber} 번호 기준으로 놓친보험금 mock 케이스 "${selectedPreset?.title ?? response.selectedPresetKey}"를 적용했습니다.`;
+      setLastAppliedAt(message);
+      setToast({ message, tone: 'success' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '변경 적용에 실패했습니다.';
+      setLastAppliedAt(message);
+      setToast({ message, tone: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleLogout = () => {
@@ -86,21 +132,33 @@ export const DashboardPage = () => {
     navigate('/', { replace: true });
   };
 
+  const toggleGroup = (groupKey: string) => {
+    setCollapsedGroups((current) => ({
+      ...current,
+      [groupKey]: !current[groupKey],
+    }));
+  };
+
   return (
     <main className="shell">
+      {toast ? (
+        <div className={`toast toast--${toast.tone}`} role="status" aria-live="polite">
+          {toast.message}
+        </div>
+      ) : null}
+
       <section className="panel">
         <div className="toolbar">
           <div>
             <span className="eyebrow">Development only</span>
             <h1>보험청구 개발자 설정</h1>
             <p className="muted">
-              개발계 테스트 데이터만 조작하는 전용 화면입니다. 로그인 흐름은 `admin-front-v2`
-              와 동일하게 아이디/비밀번호 뒤 SMS 인증 단계를 거칩니다.
+              놓친보험금 테스트 케이스를 휴대폰번호 기준 preset 형태로 적용하는 전용 화면입니다.
             </p>
           </div>
 
           <div className="toolbar__actions">
-            <span className="chip">{session?.adminId ?? '관리자'}</span>
+            <span className="chip">{session?.phoneNumber ?? '관리자'}</span>
             <button className="button button--ghost" type="button" onClick={handleLogout}>
               로그아웃
             </button>
@@ -108,61 +166,94 @@ export const DashboardPage = () => {
         </div>
 
         <div className="hero-grid">
-          <label className="field">
-            <span>휴대폰번호</span>
-            <input
-              value={phoneNumber}
-              placeholder="010-0000-0000"
-              onChange={(event) => setPhoneNumber(formatPhoneNumber(event.target.value))}
-            />
-          </label>
+          <div className="callout">
+            <strong>적용 대상</strong>
+            <p>로그인한 본인 휴대폰번호 {phoneNumber} 에만 mock 케이스를 적용합니다.</p>
+          </div>
 
           <div className="callout">
             <strong>사용 가이드</strong>
-            <p>조작 대상의 휴대폰번호를 입력한 뒤 아래 ON/OFF를 변경하고 적용합니다.</p>
+            <p>아래 놓친보험금 케이스를 선택한 뒤 변경 적용을 누르면 로그인한 번호에 바로 반영됩니다.</p>
+          </div>
+
+          <div className="callout">
+            <strong>주의 사항</strong>
+            <p>원복은 지원하지 않습니다. 초기 상태가 필요하면 회원 탈퇴 후 재가입해 주세요.</p>
+          </div>
+
+          <div className="callout">
+            <strong>현재 지원</strong>
+            <p>현재는 기본 케이스, 병원/약국 금액 경계값, 필터 제외 케이스를 포함한 구현된 preset만 노출됩니다.</p>
           </div>
         </div>
 
         <div className="action-row">
-          <button className="button button--danger" type="button" onClick={handleReset}>
-            유저 상태 초기화
-          </button>
-          <button className="button" type="button" disabled={!isDirty} onClick={handleApply}>
-            변경 적용
+          <button className="button" type="button" disabled={!phoneNumber || !selectedPresetKey || isLoading} onClick={handleApply}>
+            {isLoading ? '처리 중...' : '변경 적용'}
           </button>
         </div>
 
         <div className="section-list">
-          {sections.map((section) => (
-            <section className="settings-section" key={section.key}>
-              <div className="settings-section__header">
-                <div>
-                  <h2>{section.title}</h2>
-                  <p>{section.description}</p>
-                </div>
+          <section className="settings-section">
+            <div className="settings-section__header">
+              <div>
+                <h2>놓친보험금 Mock 케이스</h2>
+                <p>문서 기준으로 자주 검증할 케이스를 preset으로 묶었습니다. 지금은 구현된 케이스만 노출됩니다.</p>
               </div>
+            </div>
 
-              <div className="toggle-list">
-                {section.fields.map((field) => (
-                  <article className="toggle-card" key={field.key}>
+            <div className="preset-list">
+              {groupedPresets.map((group) => (
+                <section className="preset-group" key={group.key}>
+                  <button
+                    type="button"
+                    className="preset-group__header"
+                    onClick={() => toggleGroup(group.key)}
+                    aria-expanded={!collapsedGroups[group.key]}
+                  >
                     <div>
-                      <h3>{field.label}</h3>
-                      <p>{field.description}</p>
+                      <h3>{group.title}</h3>
+                      <p>{group.description}</p>
                     </div>
+                    <div className="preset-group__header-side">
+                      <span className="preset-group__count">{group.presets.length}개</span>
+                      <span className="preset-group__toggle">{collapsedGroups[group.key] ? '펼치기' : '접기'}</span>
+                    </div>
+                  </button>
 
-                    <button
-                      aria-pressed={field.value}
-                      className={`switch ${field.value ? 'switch--on' : ''}`}
-                      type="button"
-                      onClick={() => handleToggle(section.key, field.key)}
-                    >
-                      <span className="switch__thumb" />
-                    </button>
-                  </article>
-                ))}
-              </div>
-            </section>
-          ))}
+                  <div className={`preset-group__list ${collapsedGroups[group.key] ? 'preset-group__list--collapsed' : ''}`}>
+                    {group.presets.map((preset) => {
+                      const isSelected = preset.presetKey === selectedPresetKey;
+
+                      return (
+                        <button
+                          key={preset.presetKey}
+                          type="button"
+                          className={`preset-card ${isSelected ? 'preset-card--selected' : ''}`}
+                          onClick={() => setSelectedPresetKey(preset.presetKey)}
+                        >
+                          <div className="preset-card__top">
+                            <h3>{preset.title}</h3>
+                          </div>
+                          <p>{preset.description}</p>
+                          <div className="preset-chip-list">
+                            {preset.highlights.map((highlight) => (
+                              <span className="preset-chip" key={highlight}>
+                                {highlight}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="preset-card__meta">
+                            <span className="preset-card__key">{preset.presetKey}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
+            </div>
+          </section>
         </div>
 
         {lastAppliedAt ? <p className="notice">{lastAppliedAt}</p> : null}

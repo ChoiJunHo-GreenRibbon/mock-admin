@@ -1,19 +1,20 @@
 export interface LoginFormState {
-  adminId: string;
-  password: string;
+  phoneNumber: string;
   authenticationNumber: string;
 }
 
-export interface ToggleField {
-  key: string;
-  label: string;
-  description: string;
-  value: boolean;
-}
-
-export interface ToggleSection {
-  key: string;
+export interface LostBenefitPreset {
+  presetKey: string;
   title: string;
   description: string;
-  fields: ToggleField[];
+  highlights: string[];
+}
+
+export interface LostBenefitPresetCatalogResponse {
+  presets: LostBenefitPreset[];
+}
+
+export interface LostBenefitPresetSelectionResponse {
+  phoneNumber: string;
+  selectedPresetKey: string;
 }

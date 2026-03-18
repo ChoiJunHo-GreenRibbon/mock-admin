@@ -4,8 +4,7 @@ import { clearSession, hasSession, requestLogin, resendSms, verifySms } from '..
 import { LoginFormState } from '../types';
 
 const INITIAL_FORM: LoginFormState = {
-  adminId: '',
-  password: '',
+  phoneNumber: '',
   authenticationNumber: '',
 };
 
@@ -32,9 +31,11 @@ export const LoginPage = () => {
 
     try {
       if (!smsRequestedCode) {
-        const response = await requestLogin(form.adminId, form.password);
-        setSmsRequestedCode(response.code);
-        setFeedback('SMS 인증번호를 발송했습니다. 관리자 휴대폰에서 인증을 완료해 주세요.');
+        const response = await requestLogin(form.phoneNumber);
+        setSmsRequestedCode(response.phoneNumber);
+        setFeedback(
+          `SMS 인증번호를 발송했습니다. 현재 mock 인증번호는 ${response.debugCode} 입니다.`,
+        );
       } else {
         await verifySms(smsRequestedCode, form.authenticationNumber);
         navigate('/dashboard', { replace: true });
@@ -51,8 +52,8 @@ export const LoginPage = () => {
     setFeedback('');
 
     try {
-      await resendSms();
-      setFeedback('인증번호를 다시 발송했습니다.');
+      const response = await resendSms(smsRequestedCode || form.phoneNumber);
+      setFeedback(`인증번호를 다시 발송했습니다. 현재 mock 인증번호는 ${response.debugCode} 입니다.`);
     } catch {
       setFeedback('인증번호 재전송에 실패했습니다.');
     } finally {
@@ -71,26 +72,13 @@ export const LoginPage = () => {
 
         <form className="stack-lg" onSubmit={handleSubmit}>
           <label className="field">
-            <span>아이디</span>
+            <span>휴대폰번호</span>
             <input
-              value={form.adminId}
+              value={form.phoneNumber}
               disabled={Boolean(smsRequestedCode)}
-              placeholder="아이디를 입력해 주세요"
+              placeholder="휴대폰번호를 입력해 주세요"
               onChange={(event) =>
-                setForm((current) => ({ ...current, adminId: event.target.value }))
-              }
-            />
-          </label>
-
-          <label className="field">
-            <span>비밀번호</span>
-            <input
-              type="password"
-              value={form.password}
-              disabled={Boolean(smsRequestedCode)}
-              placeholder="비밀번호를 입력해 주세요"
-              onChange={(event) =>
-                setForm((current) => ({ ...current, password: event.target.value }))
+                setForm((current) => ({ ...current, phoneNumber: event.target.value }))
               }
             />
           </label>

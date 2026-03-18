@@ -1,45 +1,91 @@
 const SESSION_KEY = 'banksalad-mock-admin-session';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8083';
 
 interface SessionValue {
-  adminId: string;
+  phoneNumber: string;
   authenticatedAt: string;
 }
 
-const buildMockToken = (adminId: string) => `mock-token:${adminId}:${Date.now()}`;
+interface LoginResponse {
+  phoneNumber: string;
+  smsSent: boolean;
+  debugCode: string;
+}
 
-export const requestLogin = async (adminId: string, password: string) => {
-  await new Promise((resolve) => window.setTimeout(resolve, 400));
+interface VerifySmsResponse {
+  accessToken: string;
+  phoneNumber: string;
+}
 
-  if (!adminId.trim() || !password.trim()) {
-    throw new Error('아이디와 비밀번호를 입력해 주세요.');
+const parseResponse = async <T>(response: Response): Promise<T> => {
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || '요청 처리에 실패했습니다.');
   }
 
-  return {
-    code: adminId.trim(),
-    requiresSms: true,
-  };
+  return (await response.json()) as T;
 };
 
-export const verifySms = async (adminId: string, code: string) => {
-  await new Promise((resolve) => window.setTimeout(resolve, 400));
+export const requestLogin = async (phoneNumber: string) => {
+  if (!phoneNumber.trim()) {
+    throw new Error('휴대폰번호를 입력해 주세요.');
+  }
 
-  if (!adminId.trim() || !code.trim()) {
+  const response = await fetch(`${API_BASE_URL}/api/v1/mock/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      phoneNumber: phoneNumber.replace(/\D/g, ''),
+    }),
+  });
+
+  return parseResponse<LoginResponse>(response);
+};
+
+export const verifySms = async (phoneNumber: string, code: string) => {
+  if (!phoneNumber.trim() || !code.trim()) {
     throw new Error('인증번호를 입력해 주세요.');
   }
 
+  const response = await fetch(`${API_BASE_URL}/api/v1/mock/auth/login/sms`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      phoneNumber: phoneNumber.replace(/\D/g, ''),
+      code,
+    }),
+  });
+
+  const result = await parseResponse<VerifySmsResponse>(response);
+
   const sessionValue: SessionValue = {
-    adminId: adminId.trim(),
+    phoneNumber: result.phoneNumber,
     authenticatedAt: new Date().toISOString(),
   };
 
   window.localStorage.setItem(SESSION_KEY, JSON.stringify(sessionValue));
-  window.localStorage.setItem('accessToken', buildMockToken(adminId));
+  window.localStorage.setItem('accessToken', result.accessToken);
 
   return sessionValue;
 };
 
-export const resendSms = async () => {
-  await new Promise((resolve) => window.setTimeout(resolve, 250));
+export const resendSms = async (phoneNumber: string) => {
+  if (!phoneNumber.trim()) {
+    throw new Error('휴대폰번호를 먼저 입력해 주세요.');
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/mock/auth/login/${phoneNumber.replace(/\D/g, '')}/sms/resend`,
+    {
+      method: 'POST',
+    },
+  );
+
+  return parseResponse<LoginResponse>(response);
 };
 
 export const hasSession = () => {
