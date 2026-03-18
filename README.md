@@ -43,8 +43,7 @@ Repository `Variables`
 
 Repository `Secrets`
 
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
+- 없음
 
 현재 워크플로에 반영된 배포 대상
 
@@ -52,7 +51,9 @@ Repository `Secrets`
 - CloudFront Distribution ID: `E3V31IFVJZ8NY1`
 - Region: `ap-northeast-2`
 - VITE_API_URL: `https://agent-api.green-ribbon.co.kr`
+- Role ARN: `arn:aws:iam::938617530895:role/github-action-role`
 
 ### 권장 AWS 설정
 
-- 액세스키 사용자에 S3 Put/Delete, CloudFront Invalidation 권한 포함
+- GitHub Actions OIDC 신뢰 정책이 연결된 IAM Role 사용
+- Role에 S3 Put/Delete, CloudFront Invalidation 권한 포함
