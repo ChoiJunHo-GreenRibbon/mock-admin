@@ -58,6 +58,12 @@ jobs:
           role-to-assume: arn:aws:iam::938617530895:role/github-action-role
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: Print deploy target
+        run: echo "bucket=$S3_BUCKET region=$AWS_REGION"
+
+      - name: Check caller identity
+        run: aws sts get-caller-identity
+
       - name: Upload static assets
         run: |
           if [ -d dist/assets ]; then
