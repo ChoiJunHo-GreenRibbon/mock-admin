@@ -45,3 +45,20 @@ export const applyLostBenefitPreset = async (
 
   return parseResponse<LostBenefitPresetSelectionResponse>(response);
 };
+
+export const revertLostBenefit = async (phoneNumber: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/api/v2/admin/mock/banksalad/lost-benefit/revert`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      phoneNumber: phoneNumber.replace(/\D/g, ''),
+    }),
+  });
+
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || '변경 해제에 실패했습니다.');
+  }
+};

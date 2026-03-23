@@ -5,6 +5,7 @@ import {
   applyLostBenefitPreset,
   getLostBenefitPresets,
   getLostBenefitSelection,
+  revertLostBenefit,
 } from '../services/lostBenefitPreset';
 import { LostBenefitPreset } from '../types';
 
@@ -127,6 +128,29 @@ export const DashboardPage = () => {
     }
   };
 
+  const handleReset = async () => {
+    if (!phoneNumber) {
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      await revertLostBenefit(phoneNumber);
+      const defaultPresetKey = presets[0]?.presetKey ?? '';
+      setSelectedPresetKey(defaultPresetKey);
+      const message = `${phoneNumber} 번호 기준으로 놓친보험금 mock 설정을 초기화했습니다.`;
+      setLastAppliedAt(message);
+      setToast({ message, tone: 'success' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '변경 해제에 실패했습니다.';
+      setLastAppliedAt(message);
+      setToast({ message, tone: 'error' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     clearSession();
     navigate('/', { replace: true });
@@ -187,9 +211,12 @@ export const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="action-row">
+        <div className="floating-action">
           <button className="button" type="button" disabled={!phoneNumber || !selectedPresetKey || isLoading} onClick={handleApply}>
             {isLoading ? '처리 중...' : '변경 적용'}
+          </button>
+          <button className="button button--ghost" type="button" disabled={!phoneNumber || isLoading} onClick={handleReset}>
+            변경 해제
           </button>
         </div>
 
