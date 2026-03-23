@@ -47,10 +47,12 @@ export const applyLostBenefitPreset = async (
 };
 
 export const revertLostBenefit = async (phoneNumber: string): Promise<void> => {
+  const accessToken = window.localStorage.getItem('accessToken');
   const response = await fetch(`${API_BASE_URL}/api/v2/admin/mock/banksalad/lost-benefit/revert`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
     },
     body: JSON.stringify({
       phoneNumber: phoneNumber.replace(/\D/g, ''),
