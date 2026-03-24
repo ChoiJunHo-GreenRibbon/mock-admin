@@ -25,6 +25,11 @@ const PRESET_GROUPS = [
     title: '필터 제외',
     description: '기지급, 시효, 진단코드, 병원 상태, 계약 조건으로 제외되는 케이스입니다.',
   },
+  {
+    key: 'combination',
+    title: '상태 조합',
+    description: '병원비와 실손보험 유무 조합별 동작을 검증하는 케이스입니다.',
+  },
 ] as const;
 
 const getPresetGroupKey = (preset: LostBenefitPreset) => {
@@ -38,6 +43,14 @@ const getPresetGroupKey = (preset: LostBenefitPreset) => {
     preset.presetKey.includes('CLOSED_HOSPITAL')
   ) {
     return 'filter';
+  }
+
+  if (
+    preset.presetKey.includes('HAS_HOSPITAL_BILL') ||
+    preset.presetKey.includes('HAS_ACTUAL_LOSS') ||
+    preset.presetKey.includes('NO_ACTUAL_LOSS_NO_HOSPITAL')
+  ) {
+    return 'combination';
   }
 
   return 'default';
