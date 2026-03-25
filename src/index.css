@@ -258,6 +258,20 @@ h3 {
   color: rgba(21, 33, 28, 0.72);
 }
 
+.callout ul {
+  margin: 0;
+  padding-left: 20px;
+  color: rgba(21, 33, 28, 0.72);
+}
+
+.callout li {
+  margin-bottom: 6px;
+}
+
+.callout li:last-child {
+  margin-bottom: 0;
+}
+
 .action-row {
   display: flex;
   gap: 12px;

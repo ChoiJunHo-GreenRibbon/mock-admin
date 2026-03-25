@@ -204,23 +204,12 @@ export const DashboardPage = () => {
 
         <div className="hero-grid">
           <div className="callout">
-            <strong>적용 대상</strong>
-            <p>로그인한 본인 휴대폰번호 {phoneNumber} 에만 mock 케이스를 적용합니다.</p>
-          </div>
-
-          <div className="callout">
             <strong>사용 가이드</strong>
-            <p>아래 놓친보험금 케이스를 선택한 뒤 변경 적용을 누르면 로그인한 번호에 바로 반영됩니다.</p>
-          </div>
-
-          <div className="callout">
-            <strong>주의 사항</strong>
-            <p>원복은 지원하지 않습니다. 초기 상태가 필요하면 회원 탈퇴 후 재가입해 주세요.</p>
-          </div>
-
-          <div className="callout">
-            <strong>현재 지원</strong>
-            <p>현재는 기본 케이스, 병원/약국 금액 경계값, 필터 제외 케이스를 포함한 구현된 preset만 노출됩니다.</p>
+            <ul>
+              <li>로그인한 본인 휴대폰번호 {phoneNumber} 에만 mock 케이스를 적용합니다.</li>
+              <li>아래 놓친보험금 케이스를 선택한 뒤 변경 적용을 누르면 로그인한 번호에 바로 반영됩니다.</li>
+              <li>현재는 기본 케이스, 병원/약국 금액 경계값, 필터 제외 케이스를 포함한 구현된 preset만 노출됩니다.</li>
+            </ul>
           </div>
         </div>
 
