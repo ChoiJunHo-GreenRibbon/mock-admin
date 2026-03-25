@@ -391,7 +391,10 @@ h3 {
 
 .preset-group__list {
   display: grid;
-  gap: 16px;
+  gap: 12px;
+  margin-left: 16px;
+  padding-left: 16px;
+  border-left: 2px solid rgba(34, 94, 60, 0.15);
 }
 
 .preset-group__list--collapsed {
