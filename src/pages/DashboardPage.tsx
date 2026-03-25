@@ -237,23 +237,7 @@ export const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="hero-grid">
-          <div className="callout">
-            <strong>사용 가이드</strong>
-            <ul>
-              <li>
-                로그인한 본인 휴대폰번호 {phoneNumber} 에만 mock 케이스를
-                적용합니다.
-              </li>
-              <li>
-                아래 놓친보험금 케이스를 선택한 뒤 변경 적용을 누르면 로그인한
-                번호에 바로 반영됩니다.
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="floating-action">
+        <div className="action-bar">
           <button
             className="button"
             type="button"
@@ -270,6 +254,30 @@ export const DashboardPage = () => {
           >
             변경 해제
           </button>
+          <button
+            className="button button--danger"
+            type="button"
+            disabled={!phoneNumber || isLoading}
+            onClick={() => showToast("대행 취소 기능은 준비 중입니다.", "error")}
+          >
+            대행 취소
+          </button>
+        </div>
+
+        <div className="hero-grid">
+          <div className="callout">
+            <strong>사용 가이드</strong>
+            <ul>
+              <li>
+                로그인한 본인 휴대폰번호 {phoneNumber} 에만 mock 케이스를
+                적용합니다.
+              </li>
+              <li>
+                아래 놓친보험금 케이스를 선택한 뒤 변경 적용을 누르면 로그인한
+                번호에 바로 반영됩니다.
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div className="section-list">
