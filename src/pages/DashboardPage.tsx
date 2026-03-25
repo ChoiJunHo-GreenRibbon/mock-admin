@@ -1,76 +1,86 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { clearSession, getSession } from '../services/auth';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { clearSession, getSession } from "../services/auth";
 import {
   applyLostBenefitPreset,
   getLostBenefitPresets,
   getLostBenefitSelection,
   revertLostBenefit,
-} from '../services/lostBenefitPreset';
-import { LostBenefitPreset } from '../types';
-import { getEnvironmentLabel } from '../utils/env';
+} from "../services/lostBenefitPreset";
+import { LostBenefitPreset } from "../types";
+import { getEnvironmentLabel } from "../utils/env";
 
 const PRESET_GROUPS = [
   {
-    key: 'default',
-    title: '기본 케이스',
-    description: '대표 흐름과 빈 결과, 청구불가 같은 기본 동작을 확인하는 케이스입니다.',
+    key: "default",
+    title: "기본 케이스",
+    description:
+      "대표 흐름과 빈 결과, 청구불가 같은 기본 동작을 확인하는 케이스입니다.",
   },
   {
-    key: 'amount',
-    title: '금액 기준',
-    description: '병원 45,000원, 약국 60,000원 기준과 경계값을 검증하는 케이스입니다.',
+    key: "amount",
+    title: "금액 기준",
+    description:
+      "병원 45,000원, 약국 60,000원 기준과 경계값을 검증하는 케이스입니다.",
   },
   {
-    key: 'filter',
-    title: '필터 제외',
-    description: '기지급, 시효, 진단코드, 병원 상태, 계약 조건으로 제외되는 케이스입니다.',
+    key: "filter",
+    title: "필터 제외",
+    description:
+      "기지급, 시효, 진단코드, 병원 상태, 계약 조건으로 제외되는 케이스입니다.",
   },
   {
-    key: 'combination',
-    title: '상태 조합',
-    description: '병원비와 실손보험 유무 조합별 동작을 검증하는 케이스입니다.',
+    key: "combination",
+    title: "상태 조합",
+    description: "병원비와 실손보험 유무 조합별 동작을 검증하는 케이스입니다.",
   },
 ] as const;
 
 const getPresetGroupKey = (preset: LostBenefitPreset) => {
-  if (preset.presetKey.includes('THRESHOLD')) {
-    return 'amount';
+  if (preset.presetKey.includes("THRESHOLD")) {
+    return "amount";
   }
 
   if (
-    preset.presetKey.includes('EXCLUDED') ||
-    preset.presetKey.includes('BLACK_HOSPITAL') ||
-    preset.presetKey.includes('CLOSED_HOSPITAL')
+    preset.presetKey.includes("EXCLUDED") ||
+    preset.presetKey.includes("BLACK_HOSPITAL") ||
+    preset.presetKey.includes("CLOSED_HOSPITAL")
   ) {
-    return 'filter';
+    return "filter";
   }
 
   if (
-    preset.presetKey.includes('HAS_HOSPITAL_BILL') ||
-    preset.presetKey.includes('HAS_ACTUAL_LOSS') ||
-    preset.presetKey.includes('NO_ACTUAL_LOSS_NO_HOSPITAL')
+    preset.presetKey.includes("HAS_HOSPITAL_BILL") ||
+    preset.presetKey.includes("HAS_ACTUAL_LOSS") ||
+    preset.presetKey.includes("NO_ACTUAL_LOSS_NO_HOSPITAL")
   ) {
-    return 'combination';
+    return "combination";
   }
 
-  return 'default';
+  return "default";
 };
 
 export const DashboardPage = () => {
   const navigate = useNavigate();
   const [session] = useState(() => getSession());
-  const phoneNumber = session?.phoneNumber ?? '';
+  const phoneNumber = session?.phoneNumber ?? "";
   const [presets, setPresets] = useState<LostBenefitPreset[]>([]);
-  const [selectedPresetKey, setSelectedPresetKey] = useState('');
+  const [selectedPresetKey, setSelectedPresetKey] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [lastAppliedAt, setLastAppliedAt] = useState('');
-  const [toast, setToast] = useState<{ message: string; tone: 'success' | 'error' } | null>(null);
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [lastAppliedAt, setLastAppliedAt] = useState("");
+  const [toast, setToast] = useState<{
+    message: string;
+    tone: "success" | "error";
+  } | null>(null);
+  const [collapsedGroups, setCollapsedGroups] = useState<
+    Record<string, boolean>
+  >({});
 
   const groupedPresets = PRESET_GROUPS.map((group) => ({
     ...group,
-    presets: presets.filter((preset) => getPresetGroupKey(preset) === group.key),
+    presets: presets.filter(
+      (preset) => getPresetGroupKey(preset) === group.key,
+    ),
   })).filter((group) => group.presets.length > 0);
 
   useEffect(() => {
@@ -89,17 +99,19 @@ export const DashboardPage = () => {
 
   useEffect(() => {
     if (!session) {
-      navigate('/', { replace: true });
+      navigate("/", { replace: true });
       return;
     }
 
     void getLostBenefitPresets()
       .then((response) => {
         setPresets(response.presets);
-        setSelectedPresetKey(response.presets[0]?.presetKey ?? '');
+        setSelectedPresetKey(response.presets[0]?.presetKey ?? "");
       })
       .catch(() => {
-        setLastAppliedAt('preset 목록을 불러오지 못했습니다. mock API 상태를 확인해 주세요.');
+        setLastAppliedAt(
+          "preset 목록을 불러오지 못했습니다. mock API 상태를 확인해 주세요.",
+        );
       });
   }, [navigate, phoneNumber, session]);
 
@@ -110,12 +122,20 @@ export const DashboardPage = () => {
 
     void getLostBenefitSelection(phoneNumber)
       .then((response) => {
-        const matchedPreset = presets.find((preset) => preset.presetKey === response.selectedPresetKey);
-        setSelectedPresetKey(matchedPreset?.presetKey ?? presets[0]?.presetKey ?? '');
+        const matchedPreset = presets.find(
+          (preset) => preset.presetKey === response.selectedPresetKey,
+        );
+        setSelectedPresetKey(
+          matchedPreset?.presetKey ?? presets[0]?.presetKey ?? "",
+        );
       })
       .catch(() => {
-        setSelectedPresetKey((currentPresetKey) => currentPresetKey || presets[0]?.presetKey || '');
-        setLastAppliedAt('현재 적용된 놓친보험금 preset을 불러오지 못해 기본 케이스를 선택했습니다.');
+        setSelectedPresetKey(
+          (currentPresetKey) => currentPresetKey || presets[0]?.presetKey || "",
+        );
+        setLastAppliedAt(
+          "현재 적용된 놓친보험금 preset을 불러오지 못해 기본 케이스를 선택했습니다.",
+        );
       });
   }, [phoneNumber, presets]);
 
@@ -127,16 +147,24 @@ export const DashboardPage = () => {
     setIsLoading(true);
 
     try {
-      const response = await applyLostBenefitPreset(phoneNumber, selectedPresetKey);
-      const selectedPreset = presets.find((preset) => preset.presetKey === response.selectedPresetKey);
+      const response = await applyLostBenefitPreset(
+        phoneNumber,
+        selectedPresetKey,
+      );
+      const selectedPreset = presets.find(
+        (preset) => preset.presetKey === response.selectedPresetKey,
+      );
       setSelectedPresetKey(response.selectedPresetKey);
-      const message = `${phoneNumber} 번호 기준으로 놓친보험금 mock 케이스 "${selectedPreset?.title ?? response.selectedPresetKey}"를 적용했습니다.`;
+      const message = `${phoneNumber} 번호 기준으로 놓친보험금 mock 케이스 "${
+        selectedPreset?.title ?? response.selectedPresetKey
+      }"를 적용했습니다.`;
       setLastAppliedAt(message);
-      setToast({ message, tone: 'success' });
+      setToast({ message, tone: "success" });
     } catch (error) {
-      const message = error instanceof Error ? error.message : '변경 적용에 실패했습니다.';
+      const message =
+        error instanceof Error ? error.message : "변경 적용에 실패했습니다.";
       setLastAppliedAt(message);
-      setToast({ message, tone: 'error' });
+      setToast({ message, tone: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -151,15 +179,16 @@ export const DashboardPage = () => {
 
     try {
       await revertLostBenefit(phoneNumber);
-      const defaultPresetKey = presets[0]?.presetKey ?? '';
+      const defaultPresetKey = presets[0]?.presetKey ?? "";
       setSelectedPresetKey(defaultPresetKey);
       const message = `${phoneNumber} 번호 기준으로 놓친보험금 mock 설정을 초기화했습니다.`;
       setLastAppliedAt(message);
-      setToast({ message, tone: 'success' });
+      setToast({ message, tone: "success" });
     } catch (error) {
-      const message = error instanceof Error ? error.message : '변경 해제에 실패했습니다.';
+      const message =
+        error instanceof Error ? error.message : "변경 해제에 실패했습니다.";
       setLastAppliedAt(message);
-      setToast({ message, tone: 'error' });
+      setToast({ message, tone: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -167,7 +196,7 @@ export const DashboardPage = () => {
 
   const handleLogout = () => {
     clearSession();
-    navigate('/', { replace: true });
+    navigate("/", { replace: true });
   };
 
   const toggleGroup = (groupKey: string) => {
@@ -180,7 +209,11 @@ export const DashboardPage = () => {
   return (
     <main className="shell">
       {toast ? (
-        <div className={`toast toast--${toast.tone}`} role="status" aria-live="polite">
+        <div
+          className={`toast toast--${toast.tone}`}
+          role="status"
+          aria-live="polite"
+        >
           {toast.message}
         </div>
       ) : null}
@@ -190,14 +223,15 @@ export const DashboardPage = () => {
           <div>
             <span className="eyebrow">{getEnvironmentLabel()}</span>
             <h1>보험청구 개발자 설정</h1>
-            <p className="muted">
-              놓친보험금 테스트 케이스를 휴대폰번호 기준 preset 형태로 적용하는 전용 화면입니다.
-            </p>
           </div>
 
           <div className="toolbar__actions">
-            <span className="chip">{session?.phoneNumber ?? '관리자'}</span>
-            <button className="button button--ghost" type="button" onClick={handleLogout}>
+            <span className="chip">{session?.phoneNumber ?? "관리자"}</span>
+            <button
+              className="button button--ghost"
+              type="button"
+              onClick={handleLogout}
+            >
               로그아웃
             </button>
           </div>
@@ -207,18 +241,33 @@ export const DashboardPage = () => {
           <div className="callout">
             <strong>사용 가이드</strong>
             <ul>
-              <li>로그인한 본인 휴대폰번호 {phoneNumber} 에만 mock 케이스를 적용합니다.</li>
-              <li>아래 놓친보험금 케이스를 선택한 뒤 변경 적용을 누르면 로그인한 번호에 바로 반영됩니다.</li>
-              <li>현재는 기본 케이스, 병원/약국 금액 경계값, 필터 제외 케이스를 포함한 구현된 preset만 노출됩니다.</li>
+              <li>
+                로그인한 본인 휴대폰번호 {phoneNumber} 에만 mock 케이스를
+                적용합니다.
+              </li>
+              <li>
+                아래 놓친보험금 케이스를 선택한 뒤 변경 적용을 누르면 로그인한
+                번호에 바로 반영됩니다.
+              </li>
             </ul>
           </div>
         </div>
 
         <div className="floating-action">
-          <button className="button" type="button" disabled={!phoneNumber || !selectedPresetKey || isLoading} onClick={handleApply}>
-            {isLoading ? '처리 중...' : '변경 적용'}
+          <button
+            className="button"
+            type="button"
+            disabled={!phoneNumber || !selectedPresetKey || isLoading}
+            onClick={handleApply}
+          >
+            {isLoading ? "처리 중..." : "변경 적용"}
           </button>
-          <button className="button button--ghost" type="button" disabled={!phoneNumber || isLoading} onClick={handleReset}>
+          <button
+            className="button button--ghost"
+            type="button"
+            disabled={!phoneNumber || isLoading}
+            onClick={handleReset}
+          >
             변경 해제
           </button>
         </div>
@@ -228,7 +277,10 @@ export const DashboardPage = () => {
             <div className="settings-section__header">
               <div>
                 <h2>놓친보험금 Mock 케이스</h2>
-                <p>문서 기준으로 자주 검증할 케이스를 preset으로 묶었습니다. 지금은 구현된 케이스만 노출됩니다.</p>
+                <p>
+                  문서 기준으로 자주 검증할 케이스를 preset으로 묶었습니다.
+                  지금은 구현된 케이스만 노출됩니다.
+                </p>
               </div>
             </div>
 
@@ -246,12 +298,22 @@ export const DashboardPage = () => {
                       <p>{group.description}</p>
                     </div>
                     <div className="preset-group__header-side">
-                      <span className="preset-group__count">{group.presets.length}개</span>
-                      <span className="preset-group__toggle">{collapsedGroups[group.key] ? '펼치기' : '접기'}</span>
+                      <span className="preset-group__count">
+                        {group.presets.length}개
+                      </span>
+                      <span className="preset-group__toggle">
+                        {collapsedGroups[group.key] ? "펼치기" : "접기"}
+                      </span>
                     </div>
                   </button>
 
-                  <div className={`preset-group__list ${collapsedGroups[group.key] ? 'preset-group__list--collapsed' : ''}`}>
+                  <div
+                    className={`preset-group__list ${
+                      collapsedGroups[group.key]
+                        ? "preset-group__list--collapsed"
+                        : ""
+                    }`}
+                  >
                     {group.presets.map((preset) => {
                       const isSelected = preset.presetKey === selectedPresetKey;
 
@@ -259,7 +321,9 @@ export const DashboardPage = () => {
                         <button
                           key={preset.presetKey}
                           type="button"
-                          className={`preset-card ${isSelected ? 'preset-card--selected' : ''}`}
+                          className={`preset-card ${
+                            isSelected ? "preset-card--selected" : ""
+                          }`}
                           onClick={() => setSelectedPresetKey(preset.presetKey)}
                         >
                           <div className="preset-card__top">
@@ -274,7 +338,9 @@ export const DashboardPage = () => {
                             ))}
                           </div>
                           <div className="preset-card__meta">
-                            <span className="preset-card__key">{preset.presetKey}</span>
+                            <span className="preset-card__key">
+                              {preset.presetKey}
+                            </span>
                           </div>
                         </button>
                       );
