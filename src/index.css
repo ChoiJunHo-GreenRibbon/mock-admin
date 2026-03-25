@@ -389,16 +389,23 @@ h3 {
   font-weight: 700;
 }
 
+.preset-group__list-wrapper {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.3s ease;
+}
+
+.preset-group__list-wrapper--collapsed {
+  grid-template-rows: 0fr;
+}
+
 .preset-group__list {
   display: grid;
   gap: 12px;
   margin-left: 16px;
   padding-left: 16px;
   border-left: 2px solid rgba(34, 94, 60, 0.15);
-}
-
-.preset-group__list--collapsed {
-  display: none;
+  overflow: hidden;
 }
 
 .toggle-card {

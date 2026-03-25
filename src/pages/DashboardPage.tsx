@@ -308,12 +308,13 @@ export const DashboardPage = () => {
                   </button>
 
                   <div
-                    className={`preset-group__list ${
+                    className={`preset-group__list-wrapper ${
                       collapsedGroups[group.key]
-                        ? "preset-group__list--collapsed"
+                        ? "preset-group__list-wrapper--collapsed"
                         : ""
                     }`}
                   >
+                    <div className="preset-group__list">
                     {group.presets.map((preset) => {
                       const isSelected = preset.presetKey === selectedPresetKey;
 
@@ -343,6 +344,7 @@ export const DashboardPage = () => {
                         </button>
                       );
                     })}
+                    </div>
                   </div>
                 </section>
               ))}
