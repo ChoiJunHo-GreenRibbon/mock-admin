@@ -222,7 +222,7 @@ export const DashboardPage = () => {
         <div className="toolbar">
           <div>
             <span className="eyebrow">{getEnvironmentLabel()}</span>
-            <h1>보험청구 개발자 설정</h1>
+            <h1>놓친보험금 Mock 설정</h1>
           </div>
 
           <div className="toolbar__actions">
@@ -239,26 +239,12 @@ export const DashboardPage = () => {
 
         <div className="action-bar">
           <button
-            className="button"
-            type="button"
-            disabled={!phoneNumber || !selectedPresetKey || isLoading}
-            onClick={handleApply}
-          >
-            {isLoading ? "처리 중..." : "변경 적용"}
-          </button>
-          <button
-            className="button button--ghost"
-            type="button"
-            disabled={!phoneNumber || isLoading}
-            onClick={handleReset}
-          >
-            변경 해제
-          </button>
-          <button
             className="button button--danger"
             type="button"
             disabled={!phoneNumber || isLoading}
-            onClick={() => showToast("대행 취소 기능은 준비 중입니다.", "error")}
+            onClick={() =>
+              showToast("대행 취소 기능은 준비 중입니다.", "error")
+            }
           >
             대행 취소
           </button>
@@ -323,35 +309,38 @@ export const DashboardPage = () => {
                     }`}
                   >
                     <div className="preset-group__list">
-                    {group.presets.map((preset) => {
-                      const isSelected = preset.presetKey === selectedPresetKey;
+                      {group.presets.map((preset) => {
+                        const isSelected =
+                          preset.presetKey === selectedPresetKey;
 
-                      return (
-                        <button
-                          key={preset.presetKey}
-                          type="button"
-                          className={`preset-card ${
-                            isSelected ? "preset-card--selected" : ""
-                          }`}
-                          onClick={() => setSelectedPresetKey(preset.presetKey)}
-                        >
-                          <div className="preset-card__top">
-                            <h3>{preset.title}</h3>
-                          </div>
-                          <p>{preset.description}</p>
-                          <ul className="preset-highlights">
-                            {preset.highlights.map((highlight) => (
-                              <li key={highlight}>{highlight}</li>
-                            ))}
-                          </ul>
-                          <div className="preset-card__meta">
-                            <span className="preset-card__key">
-                              {preset.presetKey}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
+                        return (
+                          <button
+                            key={preset.presetKey}
+                            type="button"
+                            className={`preset-card ${
+                              isSelected ? "preset-card--selected" : ""
+                            }`}
+                            onClick={() =>
+                              setSelectedPresetKey(preset.presetKey)
+                            }
+                          >
+                            <div className="preset-card__top">
+                              <h3>{preset.title}</h3>
+                            </div>
+                            <p>{preset.description}</p>
+                            <ul className="preset-highlights">
+                              {preset.highlights.map((highlight) => (
+                                <li key={highlight}>{highlight}</li>
+                              ))}
+                            </ul>
+                            <div className="preset-card__meta">
+                              <span className="preset-card__key">
+                                {preset.presetKey}
+                              </span>
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </section>
@@ -361,6 +350,25 @@ export const DashboardPage = () => {
         </div>
 
         {lastAppliedAt ? <p className="notice">{lastAppliedAt}</p> : null}
+
+        <div className="floating-action">
+          <button
+            className="button"
+            type="button"
+            disabled={!phoneNumber || !selectedPresetKey || isLoading}
+            onClick={handleApply}
+          >
+            {isLoading ? "처리 중..." : "변경 적용"}
+          </button>
+          <button
+            className="button button--ghost"
+            type="button"
+            disabled={!phoneNumber || isLoading}
+            onClick={handleReset}
+          >
+            변경 해제
+          </button>
+        </div>
       </section>
     </main>
   );
