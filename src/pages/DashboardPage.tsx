@@ -8,6 +8,7 @@ import {
   revertLostBenefit,
 } from '../services/lostBenefitPreset';
 import { LostBenefitPreset } from '../types';
+import { getEnvironmentLabel } from '../utils/env';
 
 const PRESET_GROUPS = [
   {
@@ -187,7 +188,7 @@ export const DashboardPage = () => {
       <section className="panel">
         <div className="toolbar">
           <div>
-            <span className="eyebrow">Development only</span>
+            <span className="eyebrow">{getEnvironmentLabel()}</span>
             <h1>보험청구 개발자 설정</h1>
             <p className="muted">
               놓친보험금 테스트 케이스를 휴대폰번호 기준 preset 형태로 적용하는 전용 화면입니다.

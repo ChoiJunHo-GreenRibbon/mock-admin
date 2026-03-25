@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clearSession, hasSession, requestLogin, resendSms, verifySms } from '../services/auth';
 import { LoginFormState } from '../types';
+import { getEnvironmentLabel } from '../utils/env';
 
 const INITIAL_FORM: LoginFormState = {
   phoneNumber: '',
@@ -64,7 +65,7 @@ export const LoginPage = () => {
   return (
     <main className="shell shell--center">
       <section className="panel panel--narrow">
-        <span className="eyebrow">Development only</span>
+        <span className="eyebrow">{getEnvironmentLabel()}</span>
         <h1>테스트 데이터 조작 어드민</h1>
         <p className="muted">
           개발계 테스트 데이터 확인 및 조작을 위한 전용 관리자 화면입니다.
