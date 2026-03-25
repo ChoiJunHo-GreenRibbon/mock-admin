@@ -460,20 +460,19 @@ h3 {
   color: rgba(21, 33, 28, 0.68);
 }
 
-.preset-chip-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.preset-highlights {
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(21, 33, 28, 0.68);
+  font-size: 14px;
 }
 
-.preset-chip {
-  display: inline-flex;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(46, 219, 131, 0.12);
-  color: #176945;
-  font-size: 13px;
-  font-weight: 700;
+.preset-highlights li {
+  margin-bottom: 4px;
+}
+
+.preset-highlights li:last-child {
+  margin-bottom: 0;
 }
 
 .switch {

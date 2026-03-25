@@ -330,13 +330,11 @@ export const DashboardPage = () => {
                             <h3>{preset.title}</h3>
                           </div>
                           <p>{preset.description}</p>
-                          <div className="preset-chip-list">
+                          <ul className="preset-highlights">
                             {preset.highlights.map((highlight) => (
-                              <span className="preset-chip" key={highlight}>
-                                {highlight}
-                              </span>
+                              <li key={highlight}>{highlight}</li>
                             ))}
-                          </div>
+                          </ul>
                           <div className="preset-card__meta">
                             <span className="preset-card__key">
                               {preset.presetKey}
