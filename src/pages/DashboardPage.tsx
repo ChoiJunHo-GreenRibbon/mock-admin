@@ -245,7 +245,7 @@ export const DashboardPage = () => {
             type="button"
             disabled={!phoneNumber || isLoading}
             onClick={() =>
-              showToast("대행 취소 기능은 준비 중입니다.", "error")
+              setToast({ message: "대행 취소 기능은 준비 중입니다.", tone: "error" })
             }
           >
             대행 취소
