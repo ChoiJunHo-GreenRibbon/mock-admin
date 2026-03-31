@@ -3,6 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8083';
 
 interface SessionValue {
   phoneNumber: string;
+  provider: string;
   authenticatedAt: string;
 }
 
@@ -26,7 +27,7 @@ const parseResponse = async <T>(response: Response): Promise<T> => {
   return (await response.json()) as T;
 };
 
-export const requestLogin = async (phoneNumber: string) => {
+export const requestLogin = async (phoneNumber: string, provider: string) => {
   if (!phoneNumber.trim()) {
     throw new Error('휴대폰번호를 입력해 주세요.');
   }
@@ -38,13 +39,14 @@ export const requestLogin = async (phoneNumber: string) => {
     },
     body: JSON.stringify({
       phoneNumber: phoneNumber.replace(/\D/g, ''),
+      provider,
     }),
   });
 
   return parseResponse<LoginResponse>(response);
 };
 
-export const verifySms = async (phoneNumber: string, code: string) => {
+export const verifySms = async (phoneNumber: string, code: string, provider: string) => {
   if (!phoneNumber.trim() || !code.trim()) {
     throw new Error('인증번호를 입력해 주세요.');
   }
@@ -64,6 +66,7 @@ export const verifySms = async (phoneNumber: string, code: string) => {
 
   const sessionValue: SessionValue = {
     phoneNumber: result.phoneNumber,
+    provider,
     authenticatedAt: new Date().toISOString(),
   };
 

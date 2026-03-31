@@ -31,6 +31,7 @@ export const getLostBenefitSelection = async (
 export const applyLostBenefitPreset = async (
   phoneNumber: string,
   presetKey: string,
+  provider: string,
 ): Promise<LostBenefitPresetSelectionResponse> => {
   const response = await fetch(`${API_BASE_URL}/api/v1/mock/user-settings/lost-benefit`, {
     method: 'PUT',
@@ -38,6 +39,7 @@ export const applyLostBenefitPreset = async (
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
+      provider,
       phoneNumber: phoneNumber.replace(/\D/g, ''),
       presetKey,
     }),
@@ -46,13 +48,14 @@ export const applyLostBenefitPreset = async (
   return parseResponse<LostBenefitPresetSelectionResponse>(response);
 };
 
-export const revertLostBenefit = async (phoneNumber: string): Promise<void> => {
+export const revertLostBenefit = async (phoneNumber: string, provider: string): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}/api/v1/mock/banksalad/lost-benefit/revert`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
+      provider,
       phoneNumber: phoneNumber.replace(/\D/g, ''),
     }),
   });

@@ -64,6 +64,7 @@ export const DashboardPage = () => {
   const navigate = useNavigate();
   const [session] = useState(() => getSession());
   const phoneNumber = session?.phoneNumber ?? "";
+  const provider = session?.provider ?? "kakao";
   const [presets, setPresets] = useState<LostBenefitPreset[]>([]);
   const [selectedPresetKey, setSelectedPresetKey] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -150,6 +151,7 @@ export const DashboardPage = () => {
       const response = await applyLostBenefitPreset(
         phoneNumber,
         selectedPresetKey,
+        provider,
       );
       const selectedPreset = presets.find(
         (preset) => preset.presetKey === response.selectedPresetKey,
@@ -178,7 +180,7 @@ export const DashboardPage = () => {
     setIsLoading(true);
 
     try {
-      await revertLostBenefit(phoneNumber);
+      await revertLostBenefit(phoneNumber, provider);
       const defaultPresetKey = presets[0]?.presetKey ?? "";
       setSelectedPresetKey(defaultPresetKey);
       const message = `${phoneNumber} 번호 기준으로 놓친보험금 mock 설정을 초기화했습니다.`;

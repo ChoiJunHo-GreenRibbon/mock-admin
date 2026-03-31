@@ -1,12 +1,13 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { clearSession, hasSession, requestLogin, resendSms, verifySms } from '../services/auth';
-import { LoginFormState } from '../types';
+import { LoginFormState, Provider, PROVIDERS } from '../types';
 import { getEnvironmentLabel } from '../utils/env';
 
 const INITIAL_FORM: LoginFormState = {
   phoneNumber: '',
   authenticationNumber: '',
+  provider: 'kakao',
 };
 
 export const LoginPage = () => {
@@ -32,13 +33,13 @@ export const LoginPage = () => {
 
     try {
       if (!smsRequestedCode) {
-        const response = await requestLogin(form.phoneNumber);
+        const response = await requestLogin(form.phoneNumber, form.provider);
         setSmsRequestedCode(response.phoneNumber);
         setFeedback(
           `SMS 인증번호를 발송했습니다. 현재 mock 인증번호는 ${response.debugCode} 입니다.`,
         );
       } else {
-        await verifySms(smsRequestedCode, form.authenticationNumber);
+        await verifySms(smsRequestedCode, form.authenticationNumber, form.provider);
         navigate('/dashboard', { replace: true });
       }
     } catch (error) {
@@ -72,6 +73,23 @@ export const LoginPage = () => {
         </p>
 
         <form className="stack-lg" onSubmit={handleSubmit}>
+          <label className="field">
+            <span>Provider</span>
+            <select
+              value={form.provider}
+              disabled={Boolean(smsRequestedCode)}
+              onChange={(event) =>
+                setForm((current) => ({ ...current, provider: event.target.value as Provider }))
+              }
+            >
+              {PROVIDERS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <label className="field">
             <span>휴대폰번호</span>
             <input
